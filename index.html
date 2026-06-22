@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VR Color Circle Bowling - WebXR</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside id="hud" aria-live="polite">
+        <h1>VR Color Circle Bowling</h1>
+        <p id="levelLabel">Level: -</p>
+        <p id="modeLabel">Mode: -</p>
+        <p id="timerLabel">Time: -</p>
+        <p id="statusLabel">Sẵn sàng</p>
+        <div class="actions">
+          <button id="easyBtn">Start Easy</button>
+          <button id="hardBtn">Start Hard</button>
+          <button id="nextBtn">Next Level</button>
+          <button id="resetBtn">Reset</button>
+        </div>
+      </aside>
+
+      <aside id="powerMeter" class="power-meter" aria-hidden="true" aria-label="Lực kéo hiện tại">
+        <span class="power-meter__label">Lực</span>
+        <div class="power-meter__track">
+          <div id="powerMeterFill" class="power-meter__fill"></div>
+        </div>
+        <span id="powerMeterValue" class="power-meter__value">0%</span>
+      </aside>
+
+      <div id="targetTooltip" class="target-tooltip" role="tooltip" aria-hidden="true">
+        <span id="targetTooltipSwatch" class="target-tooltip__swatch"></span>
+        <span id="targetTooltipLabel" class="target-tooltip__label"></span>
+      </div>
+
+      <section id="victoryOverlay" aria-live="polite" aria-hidden="true">
+        <div class="victory-card">
+          <h2>Chuc mung!</h2>
+          <p>Ban da hoan thanh tat ca 3 level bowling mau sac.</p>
+          <button id="playAgainBtn">Choi lai tu Level 1</button>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
