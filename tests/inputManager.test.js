@@ -130,47 +130,6 @@ describe('InputManager.finishAim', () => {
 });
 
 describe('InputManager Quest controller UI', () => {
-  it('moves the XR rig forward with the left thumbstick', () => {
-    const rig = new THREE.Group();
-    rig.position.set(0, 0, 3.2);
-    const camera = new THREE.PerspectiveCamera();
-    camera.position.set(0, 1.65, 0);
-    rig.add(camera);
-    rig.updateMatrixWorld(true);
-
-    const manager = Object.create(InputManager.prototype);
-    manager.camera = camera;
-    manager.game = { playerRig: rig };
-    const left = { gamepad: { axes: [0, 0, 0, -1] } };
-
-    manager.moveXRPlayer(left, 0.5);
-
-    expect(rig.position.z).toBeLessThan(3.2);
-    expect(rig.position.x).toBeCloseTo(0);
-  });
-
-  it('snap-turns once until the right thumbstick returns to center', () => {
-    const rig = new THREE.Group();
-    rig.position.set(0, 0, 3.2);
-    const camera = new THREE.PerspectiveCamera();
-    camera.position.set(0, 1.65, 0);
-    rig.add(camera);
-    rig.updateMatrixWorld(true);
-
-    const manager = Object.create(InputManager.prototype);
-    manager.camera = camera;
-    manager.game = { playerRig: rig };
-    manager.snapTurnReady = true;
-    const right = { gamepad: { axes: [0, 0, 1, 0] } };
-
-    manager.snapTurnXRPlayer(right);
-    const firstRotation = rig.rotation.y;
-    manager.snapTurnXRPlayer(right);
-
-    expect(firstRotation).not.toBe(0);
-    expect(rig.rotation.y).toBe(firstRotation);
-  });
-
   it('activates a VR button before attempting to grab a ball', () => {
     const manager = Object.create(InputManager.prototype);
     const controller = new THREE.Object3D();

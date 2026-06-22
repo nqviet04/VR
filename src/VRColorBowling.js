@@ -21,11 +21,6 @@ export class VRColorBowling {
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 60);
     this.camera.position.set(0, 1.65, 4.2);
 
-    this.playerRig = new THREE.Group();
-    this.playerRig.name = 'xr-player-rig';
-    this.playerRig.add(this.camera);
-    this.scene.add(this.playerRig);
-
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -81,11 +76,11 @@ export class VRColorBowling {
     this.scene.add(neonB);
 
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(7.5, LAYOUT.floorLength),
+      new THREE.PlaneGeometry(7.5, 12),
       new THREE.MeshStandardMaterial({ color: 0x1f2232, roughness: 0.88, metalness: 0.05 })
     );
     floor.rotation.x = -Math.PI * 0.5;
-    floor.position.set(0, LAYOUT.floorY - 0.018, LAYOUT.floorCenterZ);
+    floor.position.set(0, LAYOUT.floorY - 0.018, -3.4);
     this.scene.add(floor);
 
     const lane = new THREE.Mesh(
@@ -397,7 +392,6 @@ export class VRColorBowling {
     this.cancelLevelTransition();
     this.releaseHeldControllerBalls();
     this.input?.clearControllerHistory?.();
-    this.setXRPlayerRigActive(true);
     this.levelRunning = false;
     this.vrPanel.showMenu();
     this.vrPanel.placeInFrontOfCamera();
@@ -423,31 +417,6 @@ export class VRColorBowling {
     this.vrPanel.group.visible = false;
     this.vrPanel.clearHover();
     this.input?.clearControllerHistory?.();
-    this.setXRPlayerRigActive(false);
-  }
-
-  setXRPlayerRigActive(active) {
-    if (!this.playerRig || !this.camera) return;
-
-    if (active) {
-      this.playerRig.position.copy(LAYOUT.vrPlayerPosition);
-      this.playerRig.rotation.set(0, 0, 0);
-      // Keep a sensible pose for the first XR frame; WebXR then supplies the
-      // headset's live local pose while the rig preserves this world offset.
-      this.camera.position.set(0, 1.65, 0);
-      this.camera.lookAt(0, 0.45, LAYOUT.targetZ);
-    } else {
-      this.playerRig.position.set(0, 0, 0);
-      this.playerRig.rotation.set(0, 0, 0);
-      this.camera.position.set(0, 1.65, 4.2);
-      this.camera.lookAt(0, 0.45, -3.35);
-      if (this.input?.orbit) {
-        this.input.orbit.target.set(0, 0.45, -3.35);
-        this.input.orbit.update();
-      }
-    }
-
-    this.playerRig.updateMatrixWorld(true);
   }
 
   startLevel(levelId) {
@@ -587,7 +556,7 @@ export class VRColorBowling {
   animate() {
     const dt = Math.min(this.clock.getDelta(), 0.033);
 
-    this.input.update(dt);
+    this.input.update();
     this.targets.animateTargets(dt);
     updateObstacleAnimations(this.obstacleObjects, dt);
     this.balls.balls.forEach((ball) => this.balls.updateBallPhysics(ball, dt));

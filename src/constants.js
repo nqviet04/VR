@@ -213,15 +213,12 @@ export function getLevelRuntimeConfig(level, mode) {
 
 export const LAYOUT = {
   floorY: 0,
-  floorLength: 14,
-  floorCenterZ: -2.5,
   ballRadius: 0.16,
   mixSpawnLift: 0.38,
   laneWidth: 3.0,
   laneLength: 8.8,
   laneStartZ: 1.0,
   laneEndZ: -7.8,
-  approachEndZ: 4.2,
   startLineZ: 0.68,
   startLineDepth: 0.045,
   releasePoint: new THREE.Vector3(0, 0.2, 0.68),
@@ -242,19 +239,7 @@ export const LAYOUT = {
   targetY: 0.34,
   targetDenseSpacingX: 0.46,
   targetStackGap: 0.46,
-  targetHitPadding: 0.14,
-  vrPlayerPosition: new THREE.Vector3(0, 0, 3.2)
-};
-
-export const XR_LOCOMOTION = {
-  moveSpeed: 1.8,
-  deadzone: 0.18,
-  snapTurnThreshold: 0.72,
-  snapTurnAngle: Math.PI / 6,
-  minX: -3.2,
-  maxX: 3.2,
-  minZ: 1.15,
-  maxZ: 4.2
+  targetHitPadding: 0.14
 };
 
 export const AIM = {
