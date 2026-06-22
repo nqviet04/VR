@@ -431,12 +431,14 @@ export class VRColorBowling {
 
     if (active) {
       this.playerRig.position.copy(LAYOUT.vrPlayerPosition);
+      this.playerRig.rotation.set(0, 0, 0);
       // Keep a sensible pose for the first XR frame; WebXR then supplies the
       // headset's live local pose while the rig preserves this world offset.
       this.camera.position.set(0, 1.65, 0);
       this.camera.lookAt(0, 0.45, LAYOUT.targetZ);
     } else {
       this.playerRig.position.set(0, 0, 0);
+      this.playerRig.rotation.set(0, 0, 0);
       this.camera.position.set(0, 1.65, 4.2);
       this.camera.lookAt(0, 0.45, -3.35);
       if (this.input?.orbit) {
@@ -585,7 +587,7 @@ export class VRColorBowling {
   animate() {
     const dt = Math.min(this.clock.getDelta(), 0.033);
 
-    this.input.update();
+    this.input.update(dt);
     this.targets.animateTargets(dt);
     updateObstacleAnimations(this.obstacleObjects, dt);
     this.balls.balls.forEach((ball) => this.balls.updateBallPhysics(ball, dt));

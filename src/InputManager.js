@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { LEVELS, LAYOUT, AIM } from './constants.js';
+import { LEVELS, LAYOUT, AIM, XR_LOCOMOTION } from './constants.js';
 import { computeAim, aimVelocity, predictParabola, powerColor } from './aimMath.js';
 
 export class InputManager {
@@ -11,6 +11,7 @@ export class InputManager {
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
     this.controllers = [];
+    this.snapTurnReady = true;
     this.drag = null;
     this.placing = null;
     this.targetInfoTextures = new Map();
@@ -737,6 +738,87 @@ export class InputManager {
     });
   }
 
+  getThumbstickAxes(inputSource) {
+    const axes = inputSource?.gamepad?.axes || [];
+    const primary = [Number(axes[0]) || 0, Number(axes[1]) || 0];
+    const secondary = [Number(axes[2]) || 0, Number(axes[3]) || 0];
+    const primaryMagnitude = Math.hypot(...primary);
+    const secondaryMagnitude = Math.hypot(...secondary);
+    return secondaryMagnitude >= primaryMagnitude ? secondary : primary;
+  }
+
+  applyStickDeadzone(value) {
+    const magnitude = Math.abs(value);
+    if (magnitude <= XR_LOCOMOTION.deadzone) return 0;
+    const scaled = (magnitude - XR_LOCOMOTION.deadzone) / (1 - XR_LOCOMOTION.deadzone);
+    return Math.sign(value) * Math.min(scaled, 1);
+  }
+
+  getXRInputSources() {
+    const session = this.renderer.xr.getSession();
+    const sources = Array.from(session?.inputSources || []);
+    return {
+      left: sources.find((source) => source.handedness === 'left') || sources[0] || null,
+      right: sources.find((source) => source.handedness === 'right') || sources[1] || null
+    };
+  }
+
+  moveXRPlayer(inputSource, dt) {
+    const rig = this.game.playerRig;
+    if (!rig || !inputSource || dt <= 0) return;
+
+    const [rawX, rawY] = this.getThumbstickAxes(inputSource);
+    const x = this.applyStickDeadzone(rawX);
+    const y = this.applyStickDeadzone(rawY);
+    if (x === 0 && y === 0) return;
+
+    const forward = new THREE.Vector3();
+    this.camera.getWorldDirection(forward);
+    forward.y = 0;
+    if (forward.lengthSq() < 0.0001) forward.set(0, 0, -1);
+    forward.normalize();
+
+    const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+    const distance = XR_LOCOMOTION.moveSpeed * Math.min(dt, 0.05);
+    rig.position.addScaledVector(right, x * distance);
+    rig.position.addScaledVector(forward, -y * distance);
+    rig.position.x = THREE.MathUtils.clamp(rig.position.x, XR_LOCOMOTION.minX, XR_LOCOMOTION.maxX);
+    rig.position.z = THREE.MathUtils.clamp(rig.position.z, XR_LOCOMOTION.minZ, XR_LOCOMOTION.maxZ);
+    rig.updateMatrixWorld(true);
+  }
+
+  snapTurnXRPlayer(inputSource) {
+    const rig = this.game.playerRig;
+    if (!rig || !inputSource) return;
+
+    const [rawX] = this.getThumbstickAxes(inputSource);
+    if (Math.abs(rawX) < XR_LOCOMOTION.snapTurnThreshold * 0.55) {
+      this.snapTurnReady = true;
+      return;
+    }
+    if (!this.snapTurnReady || Math.abs(rawX) < XR_LOCOMOTION.snapTurnThreshold) return;
+
+    const viewerBefore = this.camera.getWorldPosition(new THREE.Vector3());
+    rig.rotation.y -= Math.sign(rawX) * XR_LOCOMOTION.snapTurnAngle;
+    rig.updateMatrixWorld(true);
+    const viewerAfter = this.camera.getWorldPosition(new THREE.Vector3());
+
+    // Rotate around the headset instead of orbiting the headset around the rig origin.
+    rig.position.x += viewerBefore.x - viewerAfter.x;
+    rig.position.z += viewerBefore.z - viewerAfter.z;
+    rig.position.x = THREE.MathUtils.clamp(rig.position.x, XR_LOCOMOTION.minX, XR_LOCOMOTION.maxX);
+    rig.position.z = THREE.MathUtils.clamp(rig.position.z, XR_LOCOMOTION.minZ, XR_LOCOMOTION.maxZ);
+    rig.updateMatrixWorld(true);
+    this.snapTurnReady = false;
+  }
+
+  updateXRLocomotion(dt) {
+    if (!this.renderer.xr.isPresenting) return;
+    const { left, right } = this.getXRInputSources();
+    this.moveXRPlayer(left, dt);
+    this.snapTurnXRPlayer(right);
+  }
+
   cancelControllerAction(controller) {
     const ball = controller?.userData?.grabbed;
     if (ball) {
@@ -785,10 +867,11 @@ export class InputManager {
     this.updateGamepadButtons();
   }
 
-  update() {
+  update(dt = 0) {
     if (this.orbit && !this.renderer.xr.isPresenting) {
       this.orbit.update();
     }
+    this.updateXRLocomotion(dt);
     this.updateControllers();
     this.game.balls.updateHoverRing();
   }

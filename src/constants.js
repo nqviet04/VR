@@ -246,6 +246,17 @@ export const LAYOUT = {
   vrPlayerPosition: new THREE.Vector3(0, 0, 3.2)
 };
 
+export const XR_LOCOMOTION = {
+  moveSpeed: 1.8,
+  deadzone: 0.18,
+  snapTurnThreshold: 0.72,
+  snapTurnAngle: Math.PI / 6,
+  minX: -3.2,
+  maxX: 3.2,
+  minZ: 1.15,
+  maxZ: 4.2
+};
+
 export const AIM = {
   minDragPx: 6,
   minDragRatio: 0.05,
