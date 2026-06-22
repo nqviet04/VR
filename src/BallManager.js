@@ -235,7 +235,7 @@ export class BallManager {
     if (
       ball.position.z < LAYOUT.laneEndZ - 0.75 ||
       rollSpeed < 0.35 ||
-      ball.position.z > LAYOUT.laneStartZ + 0.8
+      ball.position.z > LAYOUT.approachEndZ
     ) {
       this.onBallMissed(ball);
     }

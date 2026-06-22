@@ -86,7 +86,9 @@ export class InputManager {
         controller.userData.buttonPressedState = [];
       });
 
-      this.game.scene.add(controller);
+      // Controllers must share the camera's XR rig so headset and hands keep
+      // the same world-space offset behind the bowling lane.
+      (this.game.playerRig || this.game.scene).add(controller);
       this.controllers.push(controller);
     }
   }
